@@ -13,7 +13,8 @@ Usage:
 
 Run --invariants in CI to keep the memory structurally honest: every file has
 the required frontmatter, its type is a known one, no file has duplicate keys,
-the lookup index is current, and no cross-reference points at a deleted file.
+the lookup index is current, and the markdown links in the boot files
+(BRAIN/MEMORY) resolve to real files.
 """
 
 import argparse

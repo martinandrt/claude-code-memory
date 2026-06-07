@@ -24,7 +24,7 @@ Keep it to *state the next agent can act on*:
 - deploy / test status, known bugs
 - data to hand over (URLs, mock credentials, IDs)
 
-**Not** advice to your future self ("consider…", "recommend…", "for next session…") — that's agenda, not state, and the next session can't act on it.
+**Not** advice to your future self ("consider…", "recommend…", "for next session…") — that's agenda, not state, and the next session can't act on it. (`scripts/handover-lint.py`, wired as a pre-commit hook, rejects exactly these hedge-words in the `### Handoff` block.)
 
 ## 3. Capture the lessons
 

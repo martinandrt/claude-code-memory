@@ -74,7 +74,7 @@ Boot is cheap and runs always; end is selective and writes only when the session
 | [PRINCIPLES.md](PRINCIPLES.md) | The operating principles the agent runs on — all specific to this setup |
 | [templates/](templates/) | Empty boot files, the frontmatter schema, and `/boot` + `/session-end` command templates, ready to copy |
 | [examples/](examples/) | A worked example for each kind of memory file — feedback, knowledge (tool / skill / infra), a project, and a reference lookup |
-| [scripts/](scripts/) | `memory-index.py`, `memory-check.py` — stdlib only, no dependencies |
+| [scripts/](scripts/) | `memory-index.py`, `memory-check.py`, `handover-lint.py` — stdlib only, no dependencies |
 
 ## Quick start
 

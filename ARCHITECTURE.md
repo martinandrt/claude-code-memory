@@ -58,13 +58,14 @@ Everything the agent might need but rarely all at once. Each file is **one fact,
 
 Files are found by `grep`, not by being pre-loaded. That's why naming and the one-line description matter so much (see DOCTRINE — *greppable slug*).
 
-### 3. Automation — so it doesn't decay
+### 3. Automation — for the parts a machine can keep honest
 
-Memory rots if it depends on a human remembering to maintain it. Three small mechanisms remove that dependency:
+The *bookkeeping* around the memory shouldn't depend on a human remembering it. A few small mechanisms remove that dependency — but be clear about the scope: they automate the **hygiene**, not the **learning**. Writing the files honestly is still discipline (README → *What this is not*); these just keep the structure around it from rotting.
 
 - **`scripts/memory-index.py`** — scans every file's frontmatter and regenerates the `MEMORY.md` index. The index is never out of sync because it's never written by hand.
-- **`scripts/memory-check.py`** — two jobs. *Staleness*: flags files whose `last_verified` date (or `last_edited`, if absent) is older than a per-type threshold (a `project` goes stale in 30 days; a `feedback` lesson never does). *Invariants*: structural gates you can run in CI — every file has required frontmatter keys, its `type` is a known one, no cross-reference points at a deleted file, the lookup index is current.
-- **A `Stop` hook** — when a session ends, a hook appends one line (timestamp + topic) to an activity log, and can run `memory-index.py` automatically. Continuity becomes a property of the system, not a thing you remember to do.
+- **`scripts/memory-check.py`** — two jobs. *Staleness*: flags files whose `last_verified` date (or `last_edited`, if absent) is older than a per-type threshold (a `project` goes stale in 30 days; a `feedback` lesson never does). *Invariants*: structural gates you can run in CI — every file has required frontmatter keys, its `type` is a known one, no duplicate frontmatter keys, the markdown links in the boot files (BRAIN/MEMORY) resolve to real files, and the lookup index is current.
+- **`scripts/handover-lint.py`** — a commit-time check that scans the latest `### Handoff` block and rejects hedge-word agenda ("consider", "recommend", "for next session"). Wire it as a pre-commit hook to hold the handoff to *state, not agenda* mechanically rather than by good intentions.
+- **A `Stop` hook (you wire it yourself)** — Claude Code can run a command when a session ends; point it at a one-line append to an activity log and at `memory-index.py`, and that log and index maintain themselves. The repo doesn't ship the hook — it's a few lines specific to your shell and paths — but once wired, that bookkeeping stops being a thing you remember to do. The *learning* loop, though, is not on this list: nothing here makes the agent write a lesson. That stays discipline.
 
 ## Continuity & rollover
 

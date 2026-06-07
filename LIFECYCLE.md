@@ -56,21 +56,21 @@ The last thing a session does. It turns the session that just happened into some
 **Why each part**
 
 - **The gate is the point.** Without it, every session feels obligated to "produce something," and the memory fills with restatements of nothing. An empty session honestly producing nothing is the system working, not failing — it's the same honesty principle as [PRINCIPLES.md](PRINCIPLES.md) §1: don't pad. The handoff has to stay worth reading, which means most of its value comes from what you *refuse* to write.
-- **Write the handoff for the next agent, not for yourself.** The reader is the next session — it reads to *act*, not to admire. So the handoff is concrete: open technical items with file paths, deploy/test state, IDs and URLs to hand over. It is **not** a place for advice to your future self ("consider doing X", "it would be good to Y") — that's agenda, not state, and the next session can't act on it. (We enforce this with a commit-time lint; see the appendix.)
+- **Write the handoff for the next agent, not for yourself.** The reader is the next session — it reads to *act*, not to admire. So the handoff is concrete: open technical items with file paths, deploy/test state, IDs and URLs to hand over. It is **not** a place for advice to your future self ("consider doing X", "it would be good to Y") — that's agenda, not state, and the next session can't act on it. (The repo ships a commit-time lint — `scripts/handover-lint.py` — that rejects exactly this hedge-word agenda; wire it as a pre-commit hook. See the appendix.)
 - **Capture lessons here as a backstop, not as the only time.** The primary learning habit is "write the file the *moment* the correction happens" (README → *How it learns*). Session-end is the safety net that catches anything that slipped through, plus the bookkeeping — index regen and structural checks — that you don't want to depend on a human remembering.
 - **Regenerate, never hand-edit the index.** `MEMORY.md` is derived from every file's frontmatter. The moment it's edited by hand it can drift out of sync with reality; keeping it generated means it's never wrong.
 
 ---
 
-## Make it a property of the system, not a thing you remember
+## Automate the bookkeeping; the learning stays discipline
 
-The loop should not depend on you typing two commands. Wire as much of it as you can to run on its own:
+Be honest about which half of the loop a machine can carry. The **bookkeeping** — the index, the structural checks, the activity log — can run on its own. The **judgment** — what's worth a handoff, which lesson to capture, whether the session earned a write at all — can't; it stays discipline, and the repo says so plainly (README → *What this is not*). So automate the first half and don't pretend you've automated the second:
 
-- A **`Stop` hook** that appends one line to an activity log every time a session ends (timestamp + topic) gives `/boot` its "what happened since last time" for free.
+- A **`Stop` hook** that appends one line to an activity log every time a session ends (timestamp + topic) gives `/boot` its "what happened since last time" for free. You wire this yourself — it's a few lines specific to your shell and paths; the repo doesn't ship it.
 - Running **`memory-index.py` from that same hook** keeps the index current without anyone invoking `/session-end` at all.
-- Running **`memory-check.py --invariants` in CI** turns the structural gates into something a bad commit can't slip past.
+- Running **`memory-check.py --invariants`** and **`handover-lint.py`** as a pre-commit hook (and in CI) turns the structural gates and the state-not-agenda rule into something a bad commit can't slip past.
 
-Continuity becomes a property of the system, not a discipline you have to sustain by hand. The two routines are still where judgment lives — *what's worth a handoff, which lesson to capture* — but the bookkeeping around them runs itself.
+Wire those and the bookkeeping stops being a thing you remember to do. But the two routines still carry the part that matters — the judgment — and no hook makes that automatic. That half is the discipline the whole system runs on.
 
 ---
 
@@ -79,7 +79,7 @@ Continuity becomes a property of the system, not a discipline you have to sustai
 You do **not** need any of this on day one. These are the calluses a real setup grows after hundreds of sessions, recorded here so you know what the routines turn into under load — not as a starting point.
 
 - **Concurrency-safe session numbering.** If you ever run more than one session against the same memory at once (multiple agents, multiple terminals), they all boot with the same "last session number" and will collide on it at end — silently merging or overwriting each other's handoff. The fix: don't assign the session's number at boot; assign it at *end*, after syncing, from the live state. Until you run sessions in parallel, you'll never hit this.
-- **A handoff lint.** The "write state, not agenda" rule erodes the moment it's only in your head. A small commit-time check that rejects hedge-words ("consider", "recommend", "for next session") in the handoff section keeps it honest mechanically. The agent can't override its own gate; only a human at the terminal can.
+- **The handoff lint** (shipped — `scripts/handover-lint.py`). The "write state, not agenda" rule erodes the moment it's only in your head, so this is the one piece of hardening the repo ships ready to use: a commit-time check that scans the latest `### Handoff` block and rejects hedge-word agenda ("consider", "recommend", "for next session", "might want to"). Wire it as a pre-commit hook; the agent can't clear its own gate, only a human at the terminal can (`HANDOVER_OVERRIDE=1`). What daily use still adds on top is *tuning the blacklist to your own hedge-words* — the phrases you personally drift into.
 - **Rollover thresholds and staging.** As LINEAGE grows and sessions overlap, you'll want the rollover threshold tuned and a scratch area for in-progress writes so parallel sessions don't stage into each other. All of it is downstream of the same two-tier principle — keep the always-loaded part small — applied to the lifecycle instead of the file tree.
 
 Every one of these is a generalization of a specific thing that went wrong. That's the pattern the whole repo is built on: the rule exists because the absence of it cost something once.
