@@ -49,14 +49,30 @@ Each correction becomes a file the *next* session reads before it acts, so the s
 
 See **[DOCTRINE.md](DOCTRINE.md)** for *how* to write these files so a future agent acts on them correctly, and **[PRINCIPLES.md](PRINCIPLES.md)** for the operating principles the agent runs on.
 
+## The loop
+
+The files are a skeleton; a loop the agent runs every session is what makes them live. **Boot reads the boot layer. The session works. End writes the handoff, captures the lessons, and regenerates the index.**
+
+```text
+   /boot  reads ──►  BRAIN · LINEAGE · MEMORY  ──►  the work  ──┐
+   (terse status,    + recent activity                         │
+    then waits)                                                │
+        ▲                                                      ▼
+        └──────  /session-end  writes  ◄────────────────────────┘
+                 LINEAGE handoff · lessons · regenerated index
+```
+
+Boot is cheap and runs always; end is selective and writes only when the session earned it — an empty session writes nothing. Skip the loop and you have well-organized empty folders. See **[LIFECYCLE.md](LIFECYCLE.md)** for what each routine does and why, plus copy-ready `/boot` and `/session-end` templates.
+
 ## What's inside
 
 | File | What it is |
 |------|------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The layered memory model and why each part is shaped the way it is |
+| [LIFECYCLE.md](LIFECYCLE.md) | The session loop — what `/boot` and `/session-end` do and why, with copy-ready templates |
 | [DOCTRINE.md](DOCTRINE.md) | How to write memory *for an AI reader* — the writing checklist that makes recall reliable |
 | [PRINCIPLES.md](PRINCIPLES.md) | The operating principles the agent runs on — all specific to this setup |
-| [templates/](templates/) | Empty boot files + the frontmatter schema, ready to copy |
+| [templates/](templates/) | Empty boot files, the frontmatter schema, and `/boot` + `/session-end` command templates, ready to copy |
 | [examples/](examples/) | Two worked memory files — a feedback lesson and a tool gotcha |
 | [scripts/](scripts/) | `memory-index.py`, `memory-check.py` — stdlib only, no dependencies |
 
