@@ -4,6 +4,9 @@ __pycache__/
 .venv/
 venv/
 
+# Optional semantic-recall index (regenerable; never commit it)
+memory/.index/
+
 # macOS
 .DS_Store
 

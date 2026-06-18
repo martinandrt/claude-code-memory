@@ -43,6 +43,8 @@ python3 scripts/memory-check.py --invariants   # gate: required frontmatter, val
 
 If the check fails, **fix it — don't commit around it.**
 
+**Optional, if you've adopted the extras:** keep the semantic index fresh with `python3 scripts/recall/embed.py --incremental` (cheap — only re-embeds changed files), and run `python3 scripts/drift-check.py` *periodically* (not every session — it's one model call) to catch files that have started to contradict each other.
+
 ## 5. Commit
 
 Plain Git. Stage what this session touched, commit with a one-line summary of the session, push.

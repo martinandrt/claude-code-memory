@@ -2,9 +2,9 @@
 
 A file-based memory architecture that gives [Claude Code](https://claude.com/claude-code) **persistent memory across sessions** and lets it **improve from its own mistakes** — without a database, a vector store, or an API key.
 
-> This is the skeleton and the doctrine extracted from a personal Claude Code setup I've run daily across **200+ sessions**. It's shaped by what actually went wrong over that time. It ships the structure, the writing doctrine, and the scripts — **not** the private memory itself.
+> This is the skeleton and the doctrine extracted from a personal Claude Code setup I've run daily across **240+ sessions**. It's shaped by what actually went wrong over that time. It ships the structure, the writing doctrine, and the scripts — **not** the private memory itself.
 
-It is not a framework you install. It is a **shape you copy and adapt** — a handful of Markdown files, a frontmatter convention, and about 500 lines of dependency-free Python.
+It is not a framework you install. It is a **shape you copy and adapt** — a handful of Markdown files, a frontmatter convention, and about 500 lines of dependency-free Python. (One optional add-on — local semantic search — carries its own dependency; the core never does.)
 
 ---
 
@@ -34,7 +34,9 @@ memory/
 
 scripts/
   memory-index.py    regenerate the MEMORY.md lookup index from frontmatter
-  memory-check.py    staleness + structural invariants (CI-able)
+  memory-check.py    staleness + structural + anti-rot invariants (CI-able)
+  drift-check.py     factual contradictions between files (independent model)
+  recall/            optional local semantic search, for when grep isn't enough
 ```
 
 The split is what matters: the **boot layer stays small** (it's the cost you pay every session), and **detail lives on-demand** in files the agent only opens when the task calls for it. Token cost stays flat as the memory grows from 10 files to 200.
@@ -74,7 +76,8 @@ Boot is cheap and runs always; end is selective and writes only when the session
 | [PRINCIPLES.md](PRINCIPLES.md) | The operating principles the agent runs on — all specific to this setup |
 | [templates/](templates/) | Empty boot files, the frontmatter schema, and `/boot` + `/session-end` command templates, ready to copy |
 | [examples/](examples/) | A worked example for each kind of memory file — feedback, knowledge (tool / skill / infra), a project, and a reference lookup |
-| [scripts/](scripts/) | `memory-index.py`, `memory-check.py`, `handover-lint.py` — stdlib only, no dependencies |
+| [scripts/](scripts/) | `memory-index.py`, `memory-check.py`, `drift-check.py`, `handover-lint.py` — stdlib only (`drift-check` also calls the `claude` CLI you already have; still no API key) |
+| [scripts/recall/](scripts/recall/) | **Optional** local semantic search for when `grep` isn't enough — fully local, no API key, but it does add one dependency |
 
 ## Quick start
 
@@ -107,7 +110,7 @@ You don't need all of it. The smallest useful version is `feedback/` + `scripts/
 
 - **Not the actual brain.** The private memory — profile, clients, project specifics — is not here and never will be. This is the empty skeleton plus the method.
 - **Not a magic prompt.** It's a discipline. It works because something writes files honestly and something reads them before acting. If you skip the habit, you have empty folders.
-- **Not the only way.** Memory MCP servers and vector stores solve a different shape of this. This one is deliberately boring: plain files, `grep`, no infra, fully inspectable, and it survives tool churn.
+- **Not the only way.** Memory MCP servers and vector stores solve a different shape of this. The core here is deliberately boring: plain files, `grep`, no infra, fully inspectable, and it survives tool churn. (If you *do* outgrow `grep`, [`scripts/recall/`](scripts/recall/) adds an optional local, offline semantic layer — same no-API spirit, kept off to the side.)
 
 ## License
 

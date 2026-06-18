@@ -13,8 +13,11 @@ Usage:
 
 Run --invariants in CI to keep the memory structurally honest: every file has
 the required frontmatter, its type is a known one, no file has duplicate keys,
-the lookup index is current, and the markdown links in the boot files
-(BRAIN/MEMORY) resolve to real files.
+the lookup index is current, the markdown links in the boot files (BRAIN/MEMORY)
+resolve to real files, the session numbering in LINEAGE.md stays consistent, and
+no script in scripts/ is left orphaned (referenced by no doc, command, or memory
+file). The last two are anti-rot gates — they catch a kind of decay structure
+alone doesn't: a mis-numbered handoff, or a script nobody points at anymore.
 """
 
 import argparse
@@ -247,12 +250,70 @@ def invariant_feedback_cap(memory_dir: Path) -> list[str]:
     return []
 
 
+def invariant_lineage_sessions(memory_dir: Path) -> list[str]:
+    """Session numbers in LINEAGE.md are unique and never increase going down the file.
+
+    The handoff log is append-newest-on-top, so reading top→bottom the numbers should
+    descend. A duplicate, or a number that's higher than the one above it, means a
+    session was mis-numbered or retro-inserted — a quiet way for continuity to drift.
+    No-op until LINEAGE.md actually has numbered `## SESSION N` headers (the template
+    placeholder doesn't count).
+    """
+    lineage = memory_dir / "LINEAGE.md"
+    if not lineage.exists():
+        return []
+    nums = [int(m) for m in re.findall(r"^## SESSION (\d+)", lineage.read_text(), re.MULTILINE)]
+    if len(nums) < 2:
+        return []
+    failures = []
+    seen = set()
+    for n in nums:
+        if n in seen:
+            failures.append(f"LINEAGE.md: session number {n} appears more than once")
+        seen.add(n)
+    for i in range(1, len(nums)):
+        if nums[i] > nums[i - 1]:
+            failures.append(
+                f"LINEAGE.md: session {nums[i]} sits below {nums[i - 1]} — out of order "
+                f"(newest goes on top)"
+            )
+            break
+    return failures
+
+
+def invariant_no_orphan_scripts(memory_dir: Path) -> list[str]:
+    """Every top-level script in scripts/ is referred to by name from some doc.
+
+    A script that nothing — no README, no command, no memory file — names is either
+    dead or undocumented, and both rot. Sub-directories are skipped on purpose, so an
+    optional add-on like scripts/recall/ isn't policed by this gate.
+    """
+    scripts_dir = Path(__file__).resolve().parent
+    repo_root = scripts_dir.parent
+    blobs = []
+    for md in repo_root.glob("*.md"):  # README, ARCHITECTURE, … at repo root
+        blobs.append(md.read_text(encoding="utf-8", errors="ignore"))
+    if memory_dir.is_dir():
+        for md in memory_dir.rglob("*.md"):
+            blobs.append(md.read_text(encoding="utf-8", errors="ignore"))
+    blob = "\n".join(blobs)
+    failures = []
+    for script in sorted(list(scripts_dir.glob("*.py")) + list(scripts_dir.glob("*.sh"))):
+        if script.name not in blob:
+            failures.append(
+                f"scripts/{script.name}: orphan — no doc, command, or memory file names it"
+            )
+    return failures
+
+
 INVARIANTS = [
     ("Required frontmatter keys", invariant_required_keys, "error"),
     ("Known frontmatter type", invariant_known_type, "error"),
     ("No duplicate frontmatter keys", invariant_no_duplicate_keys, "error"),
     ("Cross-refs resolve (BRAIN/MEMORY)", invariant_cross_refs, "error"),
     ("Lookup index is current", invariant_index_current, "error"),
+    ("LINEAGE session numbering", invariant_lineage_sessions, "error"),
+    ("No orphan scripts", invariant_no_orphan_scripts, "error"),
     ("Feedback count cap", invariant_feedback_cap, "warning"),
 ]
 
